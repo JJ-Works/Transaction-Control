@@ -1,0 +1,8 @@
+So what I want to do is:
+1> Using switch case I want to know if the user is trying to:
+       -> Debit the balance,
+       -> Credit the balance or,
+       -> Check the timeline on which the Balances were debited or credited.
+
+2> After knowing that I'll debit credit balances and so on and make a record of it
+3> Maybe I should also make a column in Database that keeps the record.
