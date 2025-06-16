@@ -29,28 +29,46 @@ public class Main{
             }
 
 
+            System.out.print("Enter sender's Account Number: ");
             int senderAccount = sc.nextInt();
+            System.out.println("Enter receiver's Account Number: ");
             int receiverAccount = sc.nextInt();
+            System.out.println("Enter Amount to be transferred: ");
             double transferBalance = sc.nextDouble();
 
 // I don't know if I should add new user from here or using command line I think I should use command line first.
-            String addUserQuery = "Insert INTO accountDetails(account_number, date, time, status) VALUES(101,CURDATE(),CURTIME(),'COMMITTED')";
 
             String debitQuery = "UPDATE accountDetails SET balance = balance - ? WHERE account_number = ?";
             String creditQuery = "UPDATE accountDetails SET balance = balance + ? WHERE account_number = ?";
-            String timeQuery = "UPDATE accountDetails SET time = CURTIME() WHERE account_number = ?";
-            String dateQuery = "UPDATE accountDetails SET date = CURDATE() WHERE account_number = ?";
-            String stateQuery = "UPDATE accountDetails SET status = ? WHERE account_number = ?";
+            String timeQuery1 = "UPDATE accountDetails SET time = CURTIME() WHERE account_number = ?";
+            String timeQuery2 = "UPDATE accountDetails SET time = CURTIME() WHERE account_number = ?";
+            String dateQuery1 = "UPDATE accountDetails SET date = CURDATE() WHERE account_number = ?";
+            String dateQuery2 = "UPDATE accountDetails SET date = CURDATE() WHERE account_number = ?";
+            String stateQuery1 = "UPDATE accountDetails SET status = ? WHERE account_number = ?";
+            String stateQuery2 = "UPDATE accountDetails SET status = ? WHERE account_number = ?";
 
             PreparedStatement debitPreparedStatement = connection.prepareStatement(debitQuery);
             PreparedStatement creditPreparedStatement = connection.prepareStatement(creditQuery);
-            PreparedStatement timeQueryPreparedStatement = connection.prepareStatement(timeQuery);
-            PreparedStatement dateQueryPreparedStatement = connection.prepareStatement(dateQuery);
-            PreparedStatement stateQueryPreparedStatement = connection.prepareStatement(stateQuery);
+            PreparedStatement timeQueryPreparedStatement1 = connection.prepareStatement(timeQuery1);
+            PreparedStatement timeQueryPreparedStatement2 = connection.prepareStatement(timeQuery2);
+            PreparedStatement dateQueryPreparedStatement1 = connection.prepareStatement(dateQuery1);
+            PreparedStatement dateQueryPreparedStatement2 = connection.prepareStatement(dateQuery2);
+            PreparedStatement stateQueryPreparedStatement1 = connection.prepareStatement(stateQuery1);
+            PreparedStatement stateQueryPreparedStatement2 = connection.prepareStatement(stateQuery2);
 
+            debitPreparedStatement.setDouble(1,transferBalance);
+            debitPreparedStatement.setInt(2,senderAccount);
 
-
-            debitPreparedStatement.setDouble(1,);
+            creditPreparedStatement.setDouble(1, transferBalance);
+            creditPreparedStatement.setInt(2,receiverAccount);
+            timeQueryPreparedStatement1.setTime(1,senderAccount);
+            timeQueryPreparedStatement2.setTime(1,senderAccount);
+            dateQueryPreparedStatement1.setDate(1,senderAccount);
+            dateQueryPreparedStatement2.setDate(1,senderAccount);
+            stateQueryPreparedStatement1.setString(1,"COMMITTED");
+            stateQueryPreparedStatement1.setInt(2,senderAccount);
+            stateQueryPreparedStatement2.setString(1,"COMMITTED");
+            stateQueryPreparedStatement2.setInt(2,receiverAccount);
 
 
         }catch (SQLException e){
