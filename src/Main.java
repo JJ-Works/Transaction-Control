@@ -8,6 +8,9 @@ public class Main{
 
 
     public static void main(String[] args) {
+
+        Scanner sc = new Scanner(System.in);
+
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -18,7 +21,7 @@ public class Main{
         try{
             Connection connection = DriverManager.getConnection(url,username,password);
 
-            Scanner sc = new Scanner(System.in);
+
 
             System.out.println("Do you want to ADD new Account? (Y/N)");
             String choice = sc.nextLine().toLowerCase();
@@ -61,10 +64,13 @@ public class Main{
 
             creditPreparedStatement.setDouble(1, transferBalance);
             creditPreparedStatement.setInt(2,receiverAccount);
-            timeQueryPreparedStatement1.setTime(1,senderAccount);
-            timeQueryPreparedStatement2.setTime(1,senderAccount);
-            dateQueryPreparedStatement1.setDate(1,senderAccount);
-            dateQueryPreparedStatement2.setDate(1,senderAccount);
+
+            timeQueryPreparedStatement1.setInt(1,senderAccount);
+            timeQueryPreparedStatement2.setInt(1,senderAccount);
+
+            dateQueryPreparedStatement1.setInt(1,senderAccount);
+            dateQueryPreparedStatement2.setInt(1,senderAccount);
+
             stateQueryPreparedStatement1.setString(1,"COMMITTED");
             stateQueryPreparedStatement1.setInt(2,senderAccount);
             stateQueryPreparedStatement2.setString(1,"COMMITTED");
@@ -94,9 +100,7 @@ public class Main{
 
             PreparedStatement preparedStatement = connection.prepareStatement(addUserQuery);
             preparedStatement.setInt(1, accountNum);
-            preparedStatement.setDate(2,CURDATE());
-            preparedStatement.setTime(3,CURTIME());
-            preparedStatement.setString("COMMITTED");
+            preparedStatement.setString(2,"COMMITTED");
 
             int val = preparedStatement.executeUpdate();
             if(val > 0){
