@@ -9,28 +9,28 @@ public class Main{
 
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
-
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            System.out.println(e.getMessage());
-            throw new RuntimeException(e);
-        }
-
-        try{
-            Connection connection = DriverManager.getConnection(url,username,password);
+        try (Scanner sc = new Scanner(System.in)) {
+            try {
+                Class.forName("com.mysql.cj.jdbc.Driver");
+            } catch (ClassNotFoundException e) {
+                System.out.println(e.getMessage());
+                throw new RuntimeException(e);
+            }
+            Connection connection = DriverManager.getConnection(url, username, password);
 
 
+            System.out.print("Do you want to ADD new Account? (Y/N): ");
+            String addAccountChoice = sc.nextLine().toLowerCase();
 
-            System.out.println("Do you want to ADD new Account? (Y/N)");
-            String choice = sc.nextLine().toLowerCase();
-
-            if (choice.equals("Y")){
+            if (addAccountChoice.equals("y")) {
                 System.out.println("Creating Account please wait!");
                 addUser(connection);
             }
 
+            System.out.println("Do you want to transfer balance? (Y/N) :");
+            String transferBalanceChoice = sc.nextLine().toLowerCase();
+
+            if(transferBalanceChoice.equals("y")){
 
             System.out.print("Enter sender's Account Number: ");
             int senderAccount = sc.nextInt();
@@ -43,50 +43,49 @@ public class Main{
 
             String debitQuery = "UPDATE accountDetails SET balance = balance - ? WHERE account_number = ?";
             String creditQuery = "UPDATE accountDetails SET balance = balance + ? WHERE account_number = ?";
-            String timeQuery1 = "UPDATE accountDetails SET time = CURTIME() WHERE account_number = ?";
-            String timeQuery2 = "UPDATE accountDetails SET time = CURTIME() WHERE account_number = ?";
-            String dateQuery1 = "UPDATE accountDetails SET date = CURDATE() WHERE account_number = ?";
-            String dateQuery2 = "UPDATE accountDetails SET date = CURDATE() WHERE account_number = ?";
             String stateQuery1 = "UPDATE accountDetails SET status = ? WHERE account_number = ?";
             String stateQuery2 = "UPDATE accountDetails SET status = ? WHERE account_number = ?";
 
             PreparedStatement debitPreparedStatement = connection.prepareStatement(debitQuery);
             PreparedStatement creditPreparedStatement = connection.prepareStatement(creditQuery);
-            PreparedStatement timeQueryPreparedStatement1 = connection.prepareStatement(timeQuery1);
-            PreparedStatement timeQueryPreparedStatement2 = connection.prepareStatement(timeQuery2);
-            PreparedStatement dateQueryPreparedStatement1 = connection.prepareStatement(dateQuery1);
-            PreparedStatement dateQueryPreparedStatement2 = connection.prepareStatement(dateQuery2);
             PreparedStatement stateQueryPreparedStatement1 = connection.prepareStatement(stateQuery1);
             PreparedStatement stateQueryPreparedStatement2 = connection.prepareStatement(stateQuery2);
 
-            debitPreparedStatement.setDouble(1,transferBalance);
-            debitPreparedStatement.setInt(2,senderAccount);
+            debitPreparedStatement.setDouble(1, transferBalance);
+            debitPreparedStatement.setInt(2, senderAccount);
 
             creditPreparedStatement.setDouble(1, transferBalance);
-            creditPreparedStatement.setInt(2,receiverAccount);
+            creditPreparedStatement.setInt(2, receiverAccount);
 
-            timeQueryPreparedStatement1.setInt(1,senderAccount);
-            timeQueryPreparedStatement2.setInt(1,senderAccount);
+            stateQueryPreparedStatement1.setString(1, "COMMITTED");
+            stateQueryPreparedStatement1.setInt(2, senderAccount);
+            stateQueryPreparedStatement2.setString(1, "COMMITTED");
+            stateQueryPreparedStatement2.setInt(2, receiverAccount);
 
-            dateQueryPreparedStatement1.setInt(1,senderAccount);
-            dateQueryPreparedStatement2.setInt(1,senderAccount);
-
-            stateQueryPreparedStatement1.setString(1,"COMMITTED");
-            stateQueryPreparedStatement1.setInt(2,senderAccount);
-            stateQueryPreparedStatement2.setString(1,"COMMITTED");
-            stateQueryPreparedStatement2.setInt(2,receiverAccount);
+            if (checkSufficientBalance(connection,senderAccount, transferBalance)) {
+                int debitMessage = debitPreparedStatement.executeUpdate();
+                int creditMessage = creditPreparedStatement.executeUpdate();
 
 
-        }catch (SQLException e){
+                if (debitMessage > 0 || creditMessage > 0) {
+                    System.out.println("Balance Transferred!");
+                }
+            }else {
+                System.out.println("Insufficient Balance!");
+            }
+}
+            else {
+                return;
+            }
+
+
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
             e.printStackTrace();
         }
-        finally {
-            sc.close();
-        }
     }
 
-    static void addUser(Connection connection){
+        static void addUser(Connection connection){
 
         Scanner sc = new Scanner(System.in);
 
@@ -96,7 +95,7 @@ public class Main{
 
 
         try {
-            String addUserQuery = "Insert INTO accountDetails(account_number, date, time, status) VALUES(?, ?, ?, ?)";
+            String addUserQuery = "Insert INTO accountDetails(account_number, status) VALUES(?, ?)";
 
             PreparedStatement preparedStatement = connection.prepareStatement(addUserQuery);
             preparedStatement.setInt(1, accountNum);
@@ -105,6 +104,7 @@ public class Main{
             int val = preparedStatement.executeUpdate();
             if(val > 0){
                 System.out.println("Account Created!");
+                return;
             }else {
                 System.out.println("Something went wrong!");
             }
@@ -113,6 +113,24 @@ public class Main{
             System.out.println(e.getMessage());
         }
 
+    }
+
+    static boolean checkSufficientBalance(Connection connection, int accountNumber, double balance){
+
+        try{
+            String query = "SELECT balance FROM accountDetails WHERE account_number = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1,accountNumber);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()){
+                double current_balance = resultSet.getDouble("balance");
+                return !(balance > current_balance);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
 }
